@@ -18,7 +18,7 @@ abstract class WineDatabase : RoomDatabase() {
         fun getDatabase(context: Context): WineDatabase {
             return Instance ?: synchronized(this) {
                 Room.databaseBuilder(context, WineDatabase::class.java, "wine_database")
-                    .fallbackToDestructiveMigration()
+                    // .fallbackToDestructiveMigration() // Removed to prevent data loss on schema changes
                     .build()
                     .also { Instance = it }
             }

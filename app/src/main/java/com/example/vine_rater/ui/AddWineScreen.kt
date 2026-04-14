@@ -1,6 +1,7 @@
 package com.example.vine_rater.ui
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -37,6 +38,7 @@ import coil.compose.AsyncImage
 import com.example.vine_rater.R
 import com.example.vine_rater.data.Wine
 import java.io.File
+import java.io.FileOutputStream
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -87,14 +89,17 @@ fun AddWineScreen(
     }
 
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
-        photoUris = photoUris + uris
+        val savedUris = uris.mapNotNull { uri ->
+            saveImageToInternalStorage(context, uri)
+        }
+        photoUris = photoUris + savedUris
     }
 
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         if (isGranted) {
-            val file = File(context.cacheDir, "wine_${System.currentTimeMillis()}.jpg")
+            val file = File(context.filesDir, "wine_${System.currentTimeMillis()}.jpg")
             val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
             currentTempUri = uri
             cameraLauncher.launch(uri)
@@ -171,7 +176,7 @@ fun AddWineScreen(
                                     showPhotoOptions = false
                                     val permissionCheckResult = ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
                                     if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                                        val file = File(context.cacheDir, "wine_${System.currentTimeMillis()}.jpg")
+                                        val file = File(context.filesDir, "wine_${System.currentTimeMillis()}.jpg")
                                         val uri = FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
                                         currentTempUri = uri
                                         cameraLauncher.launch(uri)
@@ -255,5 +260,22 @@ fun AddWineScreen(
                 Text(if (wineId == null) "Save Tasting" else "Update Tasting")
             }
         }
+    }
+}
+
+private fun saveImageToInternalStorage(context: Context, uri: Uri): Uri? {
+    return try {
+        val inputStream = context.contentResolver.openInputStream(uri)
+        val file = File(context.filesDir, "wine_gallery_${System.currentTimeMillis()}.jpg")
+        val outputStream = FileOutputStream(file)
+        inputStream?.use { input ->
+            outputStream.use { output ->
+                input.copyTo(output)
+            }
+        }
+        Uri.fromFile(file)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }

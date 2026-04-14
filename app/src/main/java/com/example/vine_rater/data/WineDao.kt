@@ -8,6 +8,9 @@ interface WineDao {
     @Query("SELECT * FROM wines ORDER BY dateAdded DESC")
     fun getAllWines(): Flow<List<Wine>>
 
+    @Query("SELECT * FROM wines ORDER BY dateAdded DESC")
+    suspend fun getAllWinesList(): List<Wine>
+
     @Query("SELECT * FROM wines WHERE id = :id")
     fun getWineById(id: Int): Flow<Wine?>
 

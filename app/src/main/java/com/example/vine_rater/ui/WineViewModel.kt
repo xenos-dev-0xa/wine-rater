@@ -13,7 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-class WineViewModel(private val repository: WineRepository) : ViewModel() {
+class WineViewModel(val repository: WineRepository) : ViewModel() {
 
     val allWines: StateFlow<List<Wine>> = repository.getAllWines()
         .stateIn(
